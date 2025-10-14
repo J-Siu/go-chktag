@@ -1,0 +1,4 @@
+.DS_Store
+build
+go-chktag
+go.work*

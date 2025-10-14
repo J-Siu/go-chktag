@@ -1,0 +1,74 @@
+/*
+Copyright © 2025 John, Sing Dao, Siu <john.sd.siu@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+package cmd
+
+import (
+	"os"
+
+	"github.com/J-Siu/go-chktag/global"
+	"github.com/J-Siu/go-chktag/lib"
+	"github.com/J-Siu/go-helper/v2/errs"
+	"github.com/J-Siu/go-helper/v2/ezlog"
+	"github.com/spf13/cobra"
+)
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use:     "go-chktag",
+	Short:   `Git and Repo automation made easy.`,
+	Version: global.Version,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if global.Flag.Debug {
+			ezlog.SetLogLevel(ezlog.DEBUG)
+		}
+		ezlog.Debug().N("Version").Mn(global.Version).Nn("Flag").M(&global.Flag).Out()
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		lib.ChkGitTag(".", global.Flag.Tag)
+		lib.ChkVersion(".", global.Flag.Tag)
+		lib.ChkChangelog(".", global.Flag.Tag)
+		if errs.IsEmpty() {
+			ezlog.Log().M("Passed").Out()
+		}
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		if errs.NotEmpty() {
+			ezlog.Err().L().M(errs.Errs).Out()
+			os.Exit(1)
+		}
+	},
+}
+
+func Execute() {
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	cmd := rootCmd
+	cmd.PersistentFlags().BoolVarP(&global.Flag.Debug, "debug", "d", false, "Enable debug")
+	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "Tag if check passes")
+	cmd.MarkPersistentFlagRequired("tag")
+}
