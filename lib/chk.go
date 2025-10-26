@@ -24,10 +24,13 @@ package lib
 
 import (
 	"errors"
+	"regexp"
 
 	"github.com/J-Siu/go-helper/v2/errs"
+	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
 	"github.com/J-Siu/go-helper/v2/str"
+	"github.com/charlievieth/strcase"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/storer"
@@ -43,14 +46,24 @@ func ChkGitTag(workPath, tag string) (e error) {
 	var (
 		r       *git.Repository
 		tagRefs storer.ReferenceIter
-		tags    []string
+		// tagObjs *object.TagIter
+		tags []string
 	)
 	r, e = git.PlainOpen(workPath)
 	if e == nil {
 		tagRefs, e = r.Tags()
+		// tagObjs, e = r.TagObjects()
 	}
 	if e == nil {
+		// e = tagObjs.ForEach(func(t *object.Tag) error {
+		// 	ezlog.Log().N("t").M(t.Name).Out()
+		// 	// fmt.Println(t)
+		// 	tags = append(tags, t.Name)
+		// 	return nil
+		// })
+
 		e = tagRefs.ForEach(func(t *plumbing.Reference) error {
+			ezlog.Debug().N(prefix).Nn("t").M(t.Strings()).Out()
 			tags = append(tags, t.Name().Short())
 			return nil
 		})
@@ -62,38 +75,112 @@ func ChkGitTag(workPath, tag string) (e error) {
 	return e
 }
 
-func ChkChangelog(workPath, tag string) (e error) {
+// Check if tag is the last tag in CHANGELOG.md
+func ChkVerChangelog(workPath, tag string) (e error) {
 	prefix := "ChkChangeLog"
-	var (
-		filePath string
-	)
-	// check version.go
-	filePath = file.FindFile(workPath, FileChangLog, false)
-	if filePath == "" {
-		e = errors.New(FileChangLog + " not found")
+
+	vers := GetVerChangeLog(workPath)
+	if vers == nil || !strcase.EqualFold((*vers)[len(*vers)-1], tag) {
+		e = errors.New(tag + " not found or not last tag in " + FileChangLog)
 	}
-	if e == nil && !findInFile(filePath, tag) {
-		e = errors.New(tag + " not found in " + filePath)
-	}
+
 	errs.Queue(prefix, e)
 	return e
 }
 
-func ChkVersion(workPath, tag string) (e error) {
+func ChkVerVersion(workPath, tag string) (e error) {
 	prefix := "ChkVersion"
+
+	ver := GetVerVersion(workPath)
+	if !strcase.EqualFold(ver, tag) {
+		e = errors.New(tag + " not found")
+	}
+
+	errs.Queue(prefix, e)
+	return e
+}
+
+// Check if tag is the last tag in git log/tag
+func GetGitTag(workPath string) (ver string) { return ver }
+
+// Return all versions from CHANGELOG.md
+func GetVerChangeLog(workPath string) *[]string {
+	prefix := "GetVerChangeLog"
+
 	var (
+		content  *[]string
+		e        error
 		filePath string
+		matches  [][]string
+		pattern  string
+		re       *regexp.Regexp
+		vers     []string
+	)
+	filePath = file.FindFile(workPath, FileChangLog, false)
+	if filePath == "" {
+		e = errors.New(FileVersion + " not found")
+	}
+	if e == nil {
+		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
+		content, e = file.ReadStrArray(filePath)
+	}
+	if e == nil {
+		// Get last Version = "- <ver>"
+		pattern = `^- (.*)`
+		re = regexp.MustCompile(pattern)
+		for _, line := range *content {
+			// Extract <ver>
+			ezlog.Debug().N(prefix).N("line").M(line).Out()
+			matches = re.FindAllStringSubmatch(line, -1)
+			if matches != nil && len(matches[0][1]) > 0 {
+				vers = append(vers, matches[0][1])
+			}
+		}
+		ezlog.Debug().N(prefix).Nn("vers").M(vers).Out()
+	}
+
+	errs.Queue(prefix, e)
+	return &vers
+}
+
+// Return version from version.go
+func GetVerVersion(workPath string) (ver string) {
+	prefix := "GetVerVersion"
+	var (
+		content  *[]string
+		e        error
+		filePath string
+		matches  [][]string
+		pattern  string
+		re       *regexp.Regexp
 	)
 	// check version.go
 	filePath = file.FindFile(workPath, FileVersion, false)
 	if filePath == "" {
 		e = errors.New(FileVersion + " not found")
 	}
-	if e == nil && !findInFile(filePath, tag) {
-		e = errors.New(tag + " not found in " + filePath)
+	if e == nil {
+		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
+		content, e = file.ReadStrArray(filePath)
 	}
+	if e == nil {
+		// Get line: Version = "<ver>"
+		pattern = `\s*Version\s*=\s*\"(.*)\"`
+		re = regexp.MustCompile(pattern)
+		for _, line := range *content {
+			matches = re.FindAllStringSubmatch(line, -1)
+			ezlog.Debug().N(prefix).N("line").M(line).Out()
+			if matches != nil && len(matches[0][1]) != 0 {
+				// Extract <ver>
+				ver = matches[0][1]
+				ezlog.Debug().N(prefix).N("ver").M(ver).Out()
+				break
+			}
+		}
+	}
+
 	errs.Queue(prefix, e)
-	return e
+	return ver
 }
 
 func findInFile(filePath, strIn string) (b bool) {
