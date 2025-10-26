@@ -44,19 +44,28 @@ var rootCmd = &cobra.Command{
 		ezlog.Debug().N("Version").Mn(global.Version).Nn("Flag").M(&global.Flag).Out()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.ChkGitTag(".", global.Flag.Tag)
-		lib.ChkVersion(".", global.Flag.Tag)
-		lib.ChkChangelog(".", global.Flag.Tag)
-		if errs.IsEmpty() {
-			ezlog.Log().M("Passed").Out()
+		if len(args) == 0 {
+			args = []string{"."}
+		}
+		for _, path := range args {
+			ezlog.Log().N(path).Out()
+			lib.ChkGitTag(path, global.Flag.Tag)
+			lib.ChkVerVersion(path, global.Flag.Tag)
+			lib.ChkVerChangelog(path, global.Flag.Tag)
+			if errs.IsEmpty() {
+				ezlog.Log().M("Passed").Out()
+			} else {
+				ezlog.Err().L().M(errs.Errs).Out()
+				errs.Clear()
+			}
 		}
 	},
-	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		if errs.NotEmpty() {
-			ezlog.Err().L().M(errs.Errs).Out()
-			os.Exit(1)
-		}
-	},
+	// PersistentPostRun: func(cmd *cobra.Command, args []string) {
+	// 	if errs.NotEmpty() {
+	// 		ezlog.Err().L().M(errs.Errs).Out()
+	// 		os.Exit(1)
+	// 	}
+	// },
 }
 
 func Execute() {
