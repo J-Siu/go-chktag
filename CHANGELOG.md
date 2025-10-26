@@ -2,3 +2,6 @@
   - Initial commit
 - v0.0.2
   - Add Github actions
+- v0.0.3
+  - support multiple directories
+  - add standalone functions to get version from files and git repo
