@@ -5,3 +5,5 @@
 - v0.0.3
   - support multiple directories
   - add standalone functions to get version from files and git repo
+- v0.0.4
+  - get tag info if `-t` is not used

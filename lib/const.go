@@ -20,8 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-package global
+package lib
 
 const (
-	Version = "v0.0.4"
+	FileVersion  = "version.go"
+	FileChangLog = "changelog.md"
 )

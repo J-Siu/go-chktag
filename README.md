@@ -33,13 +33,16 @@ Download
 ### Usage
 
 ```sh
+Show changelog.md, version.go and git tag.
+Use -t to specify tag version.
+
 Usage:
   go-chktag [flags]
 
 Flags:
   -d, --debug        Enable debug
   -h, --help         help for go-chktag
-  -t, --tag string   Tag if check passes
+  -t, --tag string   check specific tag
   -v, --version      version for go-chktag
 ```
 

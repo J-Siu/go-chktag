@@ -24,21 +24,14 @@ package lib
 
 import (
 	"errors"
-	"regexp"
 
 	"github.com/J-Siu/go-helper/v2/errs"
 	"github.com/J-Siu/go-helper/v2/ezlog"
-	"github.com/J-Siu/go-helper/v2/file"
 	"github.com/J-Siu/go-helper/v2/str"
 	"github.com/charlievieth/strcase"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/storer"
-)
-
-const (
-	FileVersion  = "version.go"
-	FileChangLog = "changelog.md"
 )
 
 func ChkGitTag(workPath, tag string) (e error) {
@@ -98,102 +91,4 @@ func ChkVerVersion(workPath, tag string) (e error) {
 
 	errs.Queue(prefix, e)
 	return e
-}
-
-// Check if tag is the last tag in git log/tag
-func GetGitTag(workPath string) (ver string) { return ver }
-
-// Return all versions from CHANGELOG.md
-func GetVerChangeLog(workPath string) *[]string {
-	prefix := "GetVerChangeLog"
-
-	var (
-		content  *[]string
-		e        error
-		filePath string
-		matches  [][]string
-		pattern  string
-		re       *regexp.Regexp
-		vers     []string
-	)
-	filePath = file.FindFile(workPath, FileChangLog, false)
-	if filePath == "" {
-		e = errors.New(FileVersion + " not found")
-	}
-	if e == nil {
-		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
-		content, e = file.ReadStrArray(filePath)
-	}
-	if e == nil {
-		// Get last Version = "- <ver>"
-		pattern = `^- (.*)`
-		re = regexp.MustCompile(pattern)
-		for _, line := range *content {
-			// Extract <ver>
-			ezlog.Debug().N(prefix).N("line").M(line).Out()
-			matches = re.FindAllStringSubmatch(line, -1)
-			if matches != nil && len(matches[0][1]) > 0 {
-				vers = append(vers, matches[0][1])
-			}
-		}
-		ezlog.Debug().N(prefix).Nn("vers").M(vers).Out()
-	}
-
-	errs.Queue(prefix, e)
-	return &vers
-}
-
-// Return version from version.go
-func GetVerVersion(workPath string) (ver string) {
-	prefix := "GetVerVersion"
-	var (
-		content  *[]string
-		e        error
-		filePath string
-		matches  [][]string
-		pattern  string
-		re       *regexp.Regexp
-	)
-	// check version.go
-	filePath = file.FindFile(workPath, FileVersion, false)
-	if filePath == "" {
-		e = errors.New(FileVersion + " not found")
-	}
-	if e == nil {
-		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
-		content, e = file.ReadStrArray(filePath)
-	}
-	if e == nil {
-		// Get line: Version = "<ver>"
-		pattern = `\s*Version\s*=\s*\"(.*)\"`
-		re = regexp.MustCompile(pattern)
-		for _, line := range *content {
-			matches = re.FindAllStringSubmatch(line, -1)
-			ezlog.Debug().N(prefix).N("line").M(line).Out()
-			if matches != nil && len(matches[0][1]) != 0 {
-				// Extract <ver>
-				ver = matches[0][1]
-				ezlog.Debug().N(prefix).N("ver").M(ver).Out()
-				break
-			}
-		}
-	}
-
-	errs.Queue(prefix, e)
-	return ver
-}
-
-func findInFile(filePath, strIn string) (b bool) {
-	var (
-		e        error
-		sP       *string
-		strArrIn = []string{strIn}
-	)
-	sP, e = file.ReadStr(filePath)
-	if e == nil {
-		if str.ContainsAnySubStringsBool(sP, &strArrIn, true) {
-			return true
-		}
-	}
-	return b
 }

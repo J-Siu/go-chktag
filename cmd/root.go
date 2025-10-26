@@ -34,8 +34,10 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "go-chktag",
-	Short:   `Git and Repo automation made easy.`,
+	Use:   "go-chktag",
+	Short: `Check tag information`,
+	Long: `Show ` + lib.FileChangLog + `, ` + lib.FileVersion + ` and git tag.
+Use -t to specify tag version.`,
 	Version: global.Version,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if global.Flag.Debug {
@@ -48,24 +50,22 @@ var rootCmd = &cobra.Command{
 			args = []string{"."}
 		}
 		for _, path := range args {
-			ezlog.Log().N(path).Out()
-			lib.ChkGitTag(path, global.Flag.Tag)
-			lib.ChkVerVersion(path, global.Flag.Tag)
-			lib.ChkVerChangelog(path, global.Flag.Tag)
-			if errs.IsEmpty() {
-				ezlog.Log().M("Passed").Out()
+			if len(args) > 1 {
+				ezlog.Log().N(path).Out()
+			}
+			if global.Flag.Tag == "" {
+				getTag(path)
 			} else {
-				ezlog.Err().L().M(errs.Errs).Out()
-				errs.Clear()
+				chkTag(path)
+				if errs.IsEmpty() {
+					ezlog.Log().M("Passed").Out()
+				} else {
+					ezlog.Err().L().M(errs.Errs).Out()
+					errs.Clear()
+				}
 			}
 		}
 	},
-	// PersistentPostRun: func(cmd *cobra.Command, args []string) {
-	// 	if errs.NotEmpty() {
-	// 		ezlog.Err().L().M(errs.Errs).Out()
-	// 		os.Exit(1)
-	// 	}
-	// },
 }
 
 func Execute() {
@@ -78,6 +78,32 @@ func Execute() {
 func init() {
 	cmd := rootCmd
 	cmd.PersistentFlags().BoolVarP(&global.Flag.Debug, "debug", "d", false, "Enable debug")
-	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "Tag if check passes")
-	cmd.MarkPersistentFlagRequired("tag")
+	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "check specific tag")
+}
+
+func chkTag(path string) {
+	lib.ChkGitTag(path, global.Flag.Tag)
+	lib.ChkVerVersion(path, global.Flag.Tag)
+	lib.ChkVerChangelog(path, global.Flag.Tag)
+}
+
+func getTag(path string) {
+	var (
+		tag  string
+		tags *[]string
+	)
+	tags = lib.GetGitTag(path)
+	if tags != nil && len(*tags) > 0 {
+		ezlog.Log().Nn("Git Tag").M(tags).Out()
+	} else {
+		ezlog.Log().N("Git Tag").Out()
+	}
+	tags = lib.GetVerChangeLog(path)
+	if tags != nil && len(*tags) > 0 {
+		ezlog.Log().Nn(lib.FileChangLog).M(tags).Out()
+	} else {
+		ezlog.Log().N("Git Tag").Out()
+	}
+	tag = lib.GetVerVersion(path)
+	ezlog.Log().N(lib.FileVersion).M(tag).Out()
 }
