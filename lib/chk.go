@@ -26,34 +26,17 @@ import (
 	"errors"
 
 	"github.com/J-Siu/go-helper/v2/errs"
-	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
 	"github.com/charlievieth/strcase"
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/plumbing"
-	"github.com/go-git/go-git/v6/plumbing/storer"
 )
 
 func ChkGitTag(workPath, tag string) (e error) {
 	prefix := "GhkGitTag"
 	var (
-		r       *git.Repository
-		tagRefs storer.ReferenceIter
-		tags    []string
+		vers *[]string
 	)
-	r, e = git.PlainOpen(workPath)
-	if e == nil {
-		tagRefs, e = r.Tags()
-	}
-	if e == nil {
-
-		e = tagRefs.ForEach(func(t *plumbing.Reference) error {
-			ezlog.Debug().N(prefix).Nn("t").M(t.Strings()).Out()
-			tags = append(tags, t.Name().Short())
-			return nil
-		})
-	}
-	if str.ArrayContains(&tags, &tag, false) {
+	vers = GetGitTag(workPath)
+	if str.ArrayContains(vers, &tag, false) {
 		e = errors.New(tag + " already exist")
 	}
 	errs.Queue(prefix, e)

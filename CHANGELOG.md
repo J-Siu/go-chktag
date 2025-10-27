@@ -10,3 +10,6 @@
 - v1.0.0
   - Feature completed
   - GetGitTag implemented
+- v1.0.1
+  - Update README.md
+  - ChkGitTag use GetGitTag

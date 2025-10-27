@@ -4,6 +4,7 @@ Command line tool checking `version.go`, `CHANGELOG.md` and git tag before taggi
 
 - [Install](#install)
 - [What It Does](#what-it-does)
+- [What It Does Not](#what-it-does-not)
 - [Usage](#usage)
 - [License](#license)
 
@@ -23,12 +24,21 @@ Download
 
 ### What It Does
 
-> This is a very simple and opinionated cli check before applying git tag.
+> This is a very simple and opinionated git tag checking tool.
 
-- Check the tag
-  - does not exist in git tag
-  - exists in `version.go`
-  - exists in `CHANGELOG.md`
+- Multiple directories checking
+- With `-t` before executing `git tag ...`, checks if the tag
+  - already exist in git tag (fail if exist)
+  - exists in `version.go` (fail if not exit)
+  - exists in `CHANGELOG.md` (fail if not exit)
+- Without `-t`, gets tags information from
+  - git tag
+  - `version.go`
+  - `CHANGELOG.md`
+
+### What It Does Not
+
+It does not execute the git tag command.
 
 ### Usage
 
