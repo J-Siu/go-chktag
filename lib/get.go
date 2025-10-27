@@ -29,18 +29,41 @@ import (
 	"github.com/J-Siu/go-helper/v2/errs"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/storer"
+	"golang.org/x/mod/semver"
 )
 
 // Check if tag is the last tag in git log/tag
 func GetGitTag(workPath string) *[]string {
+	prefix := "GetGitTag"
+
 	var (
+		e    error
+		tags storer.ReferenceIter
 		vers []string
 	)
+
+	r, e := git.PlainOpen(workPath)
+	if e == nil {
+		tags, e = r.Tags()
+	}
+	if e == nil {
+		e = tags.ForEach(func(t *plumbing.Reference) error {
+			vers = append(vers, t.Name().Short())
+			return nil
+		})
+		semver.Sort(vers)
+		ezlog.Debug().N(prefix).Nn("vers").M(vers).Out()
+	}
+
+	errs.Queue(prefix, e)
 	return &vers
 }
 
 // Return all versions from CHANGELOG.md
-func GetVerChangeLog(workPath string) *[]string {
+func GetVerChangeLog(workPath string) (*[]string, string) {
 	prefix := "GetVerChangeLog"
 
 	var (
@@ -76,19 +99,18 @@ func GetVerChangeLog(workPath string) *[]string {
 	}
 
 	errs.Queue(prefix, e)
-	return &vers
+	return &vers, filePath
 }
 
 // Return version from version.go
-func GetVerVersion(workPath string) (ver string) {
+func GetVerVersion(workPath string) (ver, filePath string) {
 	prefix := "GetVerVersion"
 	var (
-		content  *[]string
-		e        error
-		filePath string
-		matches  [][]string
-		pattern  string
-		re       *regexp.Regexp
+		content *[]string
+		e       error
+		matches [][]string
+		pattern string
+		re      *regexp.Regexp
 	)
 	// check version.go
 	filePath = file.FindFile(workPath, FileVersion, false)
@@ -116,5 +138,5 @@ func GetVerVersion(workPath string) (ver string) {
 	}
 
 	errs.Queue(prefix, e)
-	return ver
+	return ver, filePath
 }
