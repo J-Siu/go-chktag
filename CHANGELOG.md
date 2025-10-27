@@ -7,3 +7,6 @@
   - add standalone functions to get version from files and git repo
 - v0.0.4
   - get tag info if `-t` is not used
+- v1.0.0
+  - Feature completed
+  - GetGitTag implemented
