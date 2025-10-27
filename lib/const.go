@@ -24,5 +24,5 @@ package lib
 
 const (
 	FileVersion  = "version.go"
-	FileChangLog = "changelog.md"
+	FileChangLog = "CHANGELOG.md"
 )
