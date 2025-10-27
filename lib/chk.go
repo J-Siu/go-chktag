@@ -39,21 +39,13 @@ func ChkGitTag(workPath, tag string) (e error) {
 	var (
 		r       *git.Repository
 		tagRefs storer.ReferenceIter
-		// tagObjs *object.TagIter
-		tags []string
+		tags    []string
 	)
 	r, e = git.PlainOpen(workPath)
 	if e == nil {
 		tagRefs, e = r.Tags()
-		// tagObjs, e = r.TagObjects()
 	}
 	if e == nil {
-		// e = tagObjs.ForEach(func(t *object.Tag) error {
-		// 	ezlog.Log().N("t").M(t.Name).Out()
-		// 	// fmt.Println(t)
-		// 	tags = append(tags, t.Name)
-		// 	return nil
-		// })
 
 		e = tagRefs.ForEach(func(t *plumbing.Reference) error {
 			ezlog.Debug().N(prefix).Nn("t").M(t.Strings()).Out()
@@ -72,7 +64,11 @@ func ChkGitTag(workPath, tag string) (e error) {
 func ChkVerChangelog(workPath, tag string) (e error) {
 	prefix := "ChkChangeLog"
 
-	vers := GetVerChangeLog(workPath)
+	var (
+		vers *[]string
+	)
+
+	vers, _ = GetVerChangeLog(workPath)
 	if vers == nil || !strcase.EqualFold((*vers)[len(*vers)-1], tag) {
 		e = errors.New(tag + " not found or not last tag in " + FileChangLog)
 	}
@@ -84,7 +80,7 @@ func ChkVerChangelog(workPath, tag string) (e error) {
 func ChkVerVersion(workPath, tag string) (e error) {
 	prefix := "ChkVersion"
 
-	ver := GetVerVersion(workPath)
+	ver, _ := GetVerVersion(workPath)
 	if !strcase.EqualFold(ver, tag) {
 		e = errors.New(tag + " not found")
 	}

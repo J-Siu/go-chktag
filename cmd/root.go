@@ -89,21 +89,25 @@ func chkTag(path string) {
 
 func getTag(path string) {
 	var (
-		tag  string
-		tags *[]string
+		filePath string
+		tag      string
+		tags     *[]string
 	)
+
+	tag, filePath = lib.GetVerVersion(path)
+	ezlog.Log().N(filePath).M(tag).Out()
+
+	tags, filePath = lib.GetVerChangeLog(path)
+	if tags != nil && len(*tags) > 0 {
+		ezlog.Log().Nn(filePath).M(tags).Out()
+	} else {
+		ezlog.Log().N("Git Tag").Out()
+	}
+
 	tags = lib.GetGitTag(path)
 	if tags != nil && len(*tags) > 0 {
 		ezlog.Log().Nn("Git Tag").M(tags).Out()
 	} else {
 		ezlog.Log().N("Git Tag").Out()
 	}
-	tags = lib.GetVerChangeLog(path)
-	if tags != nil && len(*tags) > 0 {
-		ezlog.Log().Nn(lib.FileChangLog).M(tags).Out()
-	} else {
-		ezlog.Log().N("Git Tag").Out()
-	}
-	tag = lib.GetVerVersion(path)
-	ezlog.Log().N(lib.FileVersion).M(tag).Out()
 }
