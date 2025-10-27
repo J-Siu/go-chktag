@@ -38,7 +38,7 @@ Download
 
 ### What It Does Not
 
-It does not execute the git tag command.
+It does not add new git tag to the repository.
 
 ### Usage
 
