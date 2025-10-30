@@ -123,14 +123,15 @@ func GetVerVersion(workPath string) (ver, filePath string) {
 	}
 	if e == nil {
 		// Get line: Version = "<ver>"
-		pattern = `\s*Version\s*=\s*\"(.*)\"`
+		pattern = `\s*Version\s*(string)?\s*=\s*\"(.*)\"`
 		re = regexp.MustCompile(pattern)
 		for _, line := range *content {
 			matches = re.FindAllStringSubmatch(line, -1)
 			ezlog.Debug().N(prefix).N("line").M(line).Out()
-			if matches != nil && len(matches[0][1]) != 0 {
+			ezlog.Debug().N(prefix).N("matches").M(matches).Out()
+			if matches != nil && len(matches[0][2]) != 0 {
 				// Extract <ver>
-				ver = matches[0][1]
+				ver = matches[0][2]
 				ezlog.Debug().N(prefix).N("ver").M(ver).Out()
 				break
 			}
