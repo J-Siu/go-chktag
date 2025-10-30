@@ -95,13 +95,19 @@ func getTag(path string) {
 	)
 
 	tag, filePath = lib.GetVerVersion(path)
-	ezlog.Log().N(filePath).M(tag).Out()
+	if filePath == "" {
+		ezlog.Err().M(lib.FileVersion + " not found").Out()
+	} else {
+		ezlog.Log().N(filePath).M(tag).Out()
+	}
 
 	tags, filePath = lib.GetVerChangeLog(path)
-	if tags != nil && len(*tags) > 0 {
+	if filePath == "" {
+		ezlog.Err().M(lib.FileChangLog + " not found").Out()
+	} else if tags != nil && len(*tags) > 0 {
 		ezlog.Log().Nn(filePath).M(tags).Out()
 	} else {
-		ezlog.Log().N("Git Tag").Out()
+		ezlog.Log().N("ChangeLog").Out()
 	}
 
 	tags = lib.GetGitTag(path)
