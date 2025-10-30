@@ -13,3 +13,6 @@
 - v1.0.1
   - Update README.md
   - ChkGitTag use GetGitTag
+- v1.0.2
+  - print error if missing `version.go`, `CHANGELOG.md`
+  - support with or without `string` type declaration for `Version` in `version.go`
