@@ -16,3 +16,5 @@
 - v1.0.2
   - print error if missing `version.go`, `CHANGELOG.md`
   - support with or without `string` type declaration for `Version` in `version.go`
+- v1.0.3
+  - update go-helper/v2

@@ -43,7 +43,7 @@ Use -t to specify tag version.`,
 		if global.Flag.Debug {
 			ezlog.SetLogLevel(ezlog.DEBUG)
 		}
-		ezlog.Debug().N("Version").Mn(global.Version).Nn("Flag").M(&global.Flag).Out()
+		ezlog.Debug().N("Version").M(global.Version).Ln("Flag").M(&global.Flag).Out()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
@@ -105,14 +105,14 @@ func getTag(path string) {
 	if filePath == "" {
 		ezlog.Err().M(lib.FileChangLog + " not found").Out()
 	} else if tags != nil && len(*tags) > 0 {
-		ezlog.Log().Nn(filePath).M(tags).Out()
+		ezlog.Log().N(filePath).Lm(tags).Out()
 	} else {
 		ezlog.Log().N("ChangeLog").Out()
 	}
 
 	tags = lib.GetGitTag(path)
 	if tags != nil && len(*tags) > 0 {
-		ezlog.Log().Nn("Git Tag").M(tags).Out()
+		ezlog.Log().N("Git Tag").Lm(tags).Out()
 	} else {
 		ezlog.Log().N("Git Tag").Out()
 	}

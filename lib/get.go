@@ -55,7 +55,7 @@ func GetGitTag(workPath string) *[]string {
 			return nil
 		})
 		semver.Sort(vers)
-		ezlog.Debug().N(prefix).Nn("vers").M(vers).Out()
+		ezlog.Debug().N(prefix).N("vers").Lm(vers).Out()
 	}
 
 	errs.Queue(prefix, e)
@@ -95,7 +95,7 @@ func GetVerChangeLog(workPath string) (*[]string, string) {
 				vers = append(vers, matches[0][1])
 			}
 		}
-		ezlog.Debug().N(prefix).Nn("vers").M(vers).Out()
+		ezlog.Debug().N(prefix).N("vers").Lm(vers).Out()
 	}
 
 	errs.Queue(prefix, e)
