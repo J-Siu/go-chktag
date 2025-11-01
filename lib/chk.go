@@ -52,7 +52,7 @@ func ChkVerChangelog(workPath, tag string) (e error) {
 	)
 
 	vers, _ = GetVerChangeLog(workPath)
-	if vers == nil || !strcase.EqualFold((*vers)[len(*vers)-1], tag) {
+	if vers == nil || len(*vers) > 0 && !strcase.EqualFold((*vers)[len(*vers)-1], tag) {
 		e = errors.New(tag + " not found or not last tag in " + FileChangLog)
 	}
 

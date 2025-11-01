@@ -18,3 +18,5 @@
   - support with or without `string` type declaration for `Version` in `version.go`
 - v1.0.3
   - update go-helper/v2
+- v1.0.4
+  - fix ChkVerChangelog vers out of range error
