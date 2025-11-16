@@ -25,7 +25,7 @@ package lib
 import (
 	"errors"
 
-	"github.com/J-Siu/go-helper/v2/errs"
+	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
 	"github.com/charlievieth/strcase"
 )
@@ -35,11 +35,14 @@ func ChkGitTag(workPath, tag string) (e error) {
 	var (
 		vers *[]string
 	)
-	vers = GetGitTag(workPath)
-	if str.ArrayContains(vers, &tag, false) {
-		e = errors.New(tag + " already exist")
+	vers, e = GetGitTag(workPath)
+	if e == nil {
+		if str.ArrayContains(vers, &tag, false) {
+			e = errors.New(prefix + ": " + tag + " already exist")
+			e = errors.New(ezlog.Log().N(prefix).N(tag).M("already exist").String())
+
+		}
 	}
-	errs.Queue(prefix, e)
 	return e
 }
 
@@ -48,26 +51,43 @@ func ChkVerChangelog(workPath, tag string) (e error) {
 	prefix := "ChkChangeLog"
 
 	var (
-		vers *[]string
+		filePath string
+		vers     *[]string
 	)
 
-	vers, _ = GetVerChangeLog(workPath)
-	if vers == nil || len(*vers) > 0 && !strcase.EqualFold((*vers)[len(*vers)-1], tag) {
-		e = errors.New(tag + " not found or not last tag in " + FileChangLog)
+	vers, filePath, e = GetVerChangeLog(workPath)
+	if e == nil {
+		ezlog.Debug().N(prefix).
+			Ln("vers==nil").M(vers == nil)
+		if vers != nil {
+			ezlog.Ln("len(*vers)").M(len(*vers))
+			if len(*vers) > 0 {
+				ezlog.Ln("!strcase.EqualFold((*vers)[len(*vers)-1], tag)").M(!strcase.EqualFold((*vers)[len(*vers)-1], tag))
+			}
+		}
+		ezlog.Out()
+		if vers == nil || !(len(*vers) > 0 && strcase.EqualFold((*vers)[len(*vers)-1], tag)) {
+			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not last tag").String())
+		}
 	}
 
-	errs.Queue(prefix, e)
 	return e
 }
 
 func ChkVerVersion(workPath, tag string) (e error) {
 	prefix := "ChkVersion"
 
-	ver, _ := GetVerVersion(workPath)
-	if !strcase.EqualFold(ver, tag) {
-		e = errors.New(tag + " not found")
+	var (
+		filePath string
+		ver      string
+	)
+
+	ver, filePath, e = GetVerVersion(workPath)
+	if e == nil {
+		if !strcase.EqualFold(ver, tag) {
+			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not found").String())
+		}
 	}
 
-	errs.Queue(prefix, e)
 	return e
 }
