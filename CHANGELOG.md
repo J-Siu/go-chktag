@@ -20,3 +20,8 @@
   - update go-helper/v2
 - v1.0.4
   - fix ChkVerChangelog vers out of range error
+- v1.1.0
+  - add verbose mode
+  - fix ChkVerChangelog logic
+  - improve error passing
+  - update go-helper/v2
