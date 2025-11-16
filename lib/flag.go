@@ -24,7 +24,8 @@ package lib
 
 // Holding all flags from command line
 type TypeFlag struct {
-	Debug bool   `json:"Debug"` // Enable debug output
-	Check bool   `json:"Check"`
-	Tag   string `json:"Tag"`
+	Debug   bool   `json:"Debug"` // Enable debug output
+	Check   bool   `json:"Check"`
+	Tag     string `json:"Tag"`
+	Verbose bool   `json:"Verbose"`
 }

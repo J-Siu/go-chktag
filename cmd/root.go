@@ -59,11 +59,12 @@ Use -t to specify tag version.`,
 				chkTag(path)
 				if errs.IsEmpty() {
 					ezlog.Log().M("Passed").Out()
-				} else {
-					ezlog.Err().L().M(errs.Errs).Out()
-					errs.Clear()
 				}
 			}
+		}
+		if errs.NotEmpty() {
+			ezlog.Err().L().M(errs.Errs).Out()
+			errs.Clear()
 		}
 	},
 }
@@ -78,42 +79,62 @@ func Execute() {
 func init() {
 	cmd := rootCmd
 	cmd.PersistentFlags().BoolVarP(&global.Flag.Debug, "debug", "d", false, "Enable debug")
+	cmd.PersistentFlags().BoolVarP(&global.Flag.Verbose, "verbose", "v", false, "Enable verbose")
 	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "check specific tag")
 }
 
 func chkTag(path string) {
-	lib.ChkGitTag(path, global.Flag.Tag)
-	lib.ChkVerVersion(path, global.Flag.Tag)
-	lib.ChkVerChangelog(path, global.Flag.Tag)
+	var (
+		e error
+	)
+	e = lib.ChkVerVersion(path, global.Flag.Tag)
+	errs.Queue("", e)
+	e = lib.ChkVerChangelog(path, global.Flag.Tag)
+	errs.Queue("", e)
+	e = lib.ChkGitTag(path, global.Flag.Tag)
+	errs.Queue("", e)
 }
 
 func getTag(path string) {
 	var (
+		e        error
 		filePath string
 		tag      string
 		tags     *[]string
 	)
 
-	tag, filePath = lib.GetVerVersion(path)
-	if filePath == "" {
-		ezlog.Err().M(lib.FileVersion + " not found").Out()
-	} else {
+	tag, filePath, e = lib.GetVerVersion(path)
+	errs.Queue("", e)
+	if e == nil {
 		ezlog.Log().N(filePath).M(tag).Out()
 	}
 
-	tags, filePath = lib.GetVerChangeLog(path)
-	if filePath == "" {
-		ezlog.Err().M(lib.FileChangLog + " not found").Out()
-	} else if tags != nil && len(*tags) > 0 {
-		ezlog.Log().N(filePath).Lm(tags).Out()
-	} else {
-		ezlog.Log().N("ChangeLog").Out()
+	tags, filePath, e = lib.GetVerChangeLog(path)
+	errs.Queue("", e)
+	if e == nil {
+		ezlog.Log().N(filePath)
+		if tags != nil && len(*tags) > 0 {
+			if global.Flag.Verbose {
+				ezlog.Lm(tags)
+			} else {
+				ezlog.M((*tags)[len(*tags)-1])
+			}
+		}
+		ezlog.Out()
 	}
 
-	tags = lib.GetGitTag(path)
-	if tags != nil && len(*tags) > 0 {
-		ezlog.Log().N("Git Tag").Lm(tags).Out()
-	} else {
-		ezlog.Log().N("Git Tag").Out()
+	tags, e = lib.GetGitTag(path)
+	errs.Queue("", e)
+	if e == nil {
+		ezlog.Log().N("Git Tag")
+		if tags != nil && len(*tags) > 0 {
+			if global.Flag.Verbose {
+				ezlog.Lm(tags)
+			} else {
+				ezlog.M((*tags)[len(*tags)-1])
+			}
+		}
+		ezlog.Out()
 	}
+
 }
