@@ -24,14 +24,14 @@ Download
 
 ### What It Does
 
-> This is a very simple and opinionated git tag checking tool.
+> This is a very simple and opinionated git tag checking tool. It is intended to be used before adding new tag to a git repository.
 
 - Multiple directories checking
-- With `-t` before executing `git tag ...`, checks if the tag
+- `-t <tag>`, checks if the tag
   - already exist in git tag (fail if exist)
   - exists in `version.go` (fail if not exit)
   - exists in `CHANGELOG.md` (fail if not exit)
-- Without `-t`, gets tags information from
+- Without `-t`, gets and prints tags information from
   - git tag
   - `version.go`
   - `CHANGELOG.md`
@@ -53,7 +53,8 @@ Flags:
   -d, --debug        Enable debug
   -h, --help         help for go-chktag
   -t, --tag string   check specific tag
-  -v, --version      version for go-chktag
+  -v, --verbose      Enable verbose
+      --version      version for go-chktag
 ```
 
 ### License
