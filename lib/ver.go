@@ -26,86 +26,45 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/J-Siu/go-helper/v2/errs"
+	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/plumbing"
-	"github.com/go-git/go-git/v6/plumbing/storer"
-	"golang.org/x/mod/semver"
+	"github.com/charlievieth/strcase"
 )
 
-// Check if tag is the last tag in git log/tag
-func GetGitTag(workPath string) (*[]string, error) {
-	prefix := "GetGitTag"
-
-	var (
-		e    error
-		repo *git.Repository
-		tags storer.ReferenceIter
-		vers []string
-	)
-
-	repo, e = git.PlainOpen(workPath)
-	if e == nil {
-		tags, e = repo.Tags()
-	} else {
-		e = errors.New(workPath + ": " + e.Error())
-	}
-	if e == nil {
-		e = tags.ForEach(func(t *plumbing.Reference) error {
-			vers = append(vers, t.Name().Short())
-			return nil
-		})
-		semver.Sort(vers)
-		ezlog.Debug().N(prefix).N("vers").Lm(vers).Out()
-	}
-
-	return &vers, e
+// Get/Check version in version.go
+type Ver struct {
+	*basestruct.Base
+	WorkPath string
 }
 
-// Return all versions from CHANGELOG.md
-func GetVerChangeLog(workPath string) (*[]string, string, error) {
-	prefix := "GetVerChangeLog"
+func (t *Ver) New(workPath string) *Ver {
+	t.Base = new(basestruct.Base)
+	t.MyType = "Ver"
+	t.WorkPath = workPath
+	return t
+}
+
+func (t *Ver) Chk(tag string) (e error) {
+	prefix := "ChkVersion"
 
 	var (
-		content  *[]string
-		e        error
 		filePath string
-		matches  [][]string
-		pattern  string
-		re       *regexp.Regexp
-		vers     []string
+		ver      string
 	)
-	filePath = file.FindFile(workPath, FileChangLog, false)
-	if filePath == "" {
-		e = errors.New(FileVersion + " not found")
-	}
+
+	ver, filePath, e = t.Get()
 	if e == nil {
-		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
-		content, e = file.ReadStrArray(filePath)
-	}
-	if e == nil {
-		// Get last Version = "- <ver>"
-		pattern = `^- (.*)`
-		re = regexp.MustCompile(pattern)
-		for _, line := range *content {
-			// Extract <ver>
-			ezlog.Debug().N(prefix).N("line").M(line).Out()
-			matches = re.FindAllStringSubmatch(line, -1)
-			if matches != nil && len(matches[0][1]) > 0 {
-				vers = append(vers, matches[0][1])
-			}
+		if !strcase.EqualFold(ver, tag) {
+			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not found").String())
 		}
-		ezlog.Debug().N(prefix).N("vers").Lm(vers).Out()
 	}
 
-	errs.Queue(prefix, e)
-	return &vers, filePath, e
+	return e
 }
 
 // Return version from version.go
-func GetVerVersion(workPath string) (ver, filePath string, e error) {
+func (t *Ver) Get() (ver, filePath string, e error) {
 	prefix := "GetVerVersion"
 	var (
 		content *[]string
@@ -114,7 +73,7 @@ func GetVerVersion(workPath string) (ver, filePath string, e error) {
 		re      *regexp.Regexp
 	)
 	// check version.go
-	filePath = file.FindFile(workPath, FileVersion, false)
+	filePath = file.FindFile(t.WorkPath, FileVersion, false)
 	if filePath == "" {
 		e = errors.New(FileVersion + " not found")
 	}

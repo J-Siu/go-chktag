@@ -25,3 +25,5 @@
   - fix ChkVerChangelog logic
   - improve error passing
   - update go-helper/v2
+- v1.1.1
+  - refactor lib

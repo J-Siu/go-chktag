@@ -46,11 +46,14 @@ Use -t to specify tag version.`,
 		ezlog.Debug().N("Version").M(global.Version).Ln("Flag").M(&global.Flag).Out()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
+		var (
+			argc = len(args)
+		)
+		if argc == 0 {
 			args = []string{"."}
 		}
 		for _, path := range args {
-			if len(args) > 1 {
+			if argc > 1 {
 				ezlog.Log().N(path).Out()
 			}
 			if global.Flag.Tag == "" {
@@ -84,54 +87,48 @@ func init() {
 }
 
 func chkTag(path string) {
-	var (
-		e error
-	)
-	e = lib.ChkVerVersion(path, global.Flag.Tag)
-	errs.Queue("", e)
-	e = lib.ChkVerChangelog(path, global.Flag.Tag)
-	errs.Queue("", e)
-	e = lib.ChkGitTag(path, global.Flag.Tag)
-	errs.Queue("", e)
+	errs.Queue("", new(lib.Ver).New(path).Chk(global.Flag.Tag))
+	errs.Queue("", new(lib.Chg).New(path).Chk(global.Flag.Tag))
+	errs.Queue("", new(lib.Tag).New(path).Chk(global.Flag.Tag))
 }
 
 func getTag(path string) {
 	var (
 		e        error
 		filePath string
-		tag      string
-		tags     *[]string
+		ver      string
+		vers     *[]string
 	)
 
-	tag, filePath, e = lib.GetVerVersion(path)
+	ver, filePath, e = new(lib.Ver).New(path).Get()
 	errs.Queue("", e)
 	if e == nil {
-		ezlog.Log().N(filePath).M(tag).Out()
+		ezlog.Log().N(filePath).M(ver).Out()
 	}
 
-	tags, filePath, e = lib.GetVerChangeLog(path)
+	vers, filePath, e = new(lib.Chg).New(path).Get()
 	errs.Queue("", e)
 	if e == nil {
 		ezlog.Log().N(filePath)
-		if tags != nil && len(*tags) > 0 {
+		if vers != nil && len(*vers) > 0 {
 			if global.Flag.Verbose {
-				ezlog.Lm(tags)
+				ezlog.Lm(vers)
 			} else {
-				ezlog.M((*tags)[len(*tags)-1])
+				ezlog.M((*vers)[len(*vers)-1])
 			}
 		}
 		ezlog.Out()
 	}
 
-	tags, e = lib.GetGitTag(path)
+	vers, e = new(lib.Tag).New(path).Get()
 	errs.Queue("", e)
 	if e == nil {
 		ezlog.Log().N("Git Tag")
-		if tags != nil && len(*tags) > 0 {
+		if vers != nil && len(*vers) > 0 {
 			if global.Flag.Verbose {
-				ezlog.Lm(tags)
+				ezlog.Lm(vers)
 			} else {
-				ezlog.M((*tags)[len(*tags)-1])
+				ezlog.M((*vers)[len(*vers)-1])
 			}
 		}
 		ezlog.Out()

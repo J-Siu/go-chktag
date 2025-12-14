@@ -25,69 +25,67 @@ package lib
 import (
 	"errors"
 
+	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
-	"github.com/charlievieth/strcase"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/storer"
+	"golang.org/x/mod/semver"
 )
 
-func ChkGitTag(workPath, tag string) (e error) {
-	prefix := "GhkGitTag"
+// Get/Check tags of git tag
+type Tag struct {
+	*basestruct.Base
+	WorkPath string
+}
+
+func (t *Tag) New(workPath string) *Tag {
+	t.Base = new(basestruct.Base)
+	t.MyType = "GitTag"
+	t.WorkPath = workPath
+	return t
+}
+
+func (t *Tag) Chk(tag string) (e error) {
+	prefix := t.MyType + ".Chk"
 	var (
 		vers *[]string
 	)
-	vers, e = GetGitTag(workPath)
+	vers, e = t.Get()
 	if e == nil {
 		if str.ArrayContains(vers, &tag, false) {
 			e = errors.New(prefix + ": " + tag + " already exist")
 			e = errors.New(ezlog.Log().N(prefix).N(tag).M("already exist").String())
-
 		}
 	}
 	return e
 }
 
-// Check if tag is the last tag in CHANGELOG.md
-func ChkVerChangelog(workPath, tag string) (e error) {
-	prefix := "ChkChangeLog"
+// Check if tag is the last tag in git log/tag
+func (t *Tag) Get() (vers *[]string, e error) {
+	prefix := t.MyType + ".Get"
 
 	var (
-		filePath string
-		vers     *[]string
+		_vers []string
+		repo  *git.Repository
+		tags  storer.ReferenceIter
 	)
 
-	vers, filePath, e = GetVerChangeLog(workPath)
+	repo, e = git.PlainOpen(t.WorkPath)
 	if e == nil {
-		ezlog.Debug().N(prefix).
-			Ln("vers==nil").M(vers == nil)
-		if vers != nil {
-			ezlog.Ln("len(*vers)").M(len(*vers))
-			if len(*vers) > 0 {
-				ezlog.Ln("!strcase.EqualFold((*vers)[len(*vers)-1], tag)").M(!strcase.EqualFold((*vers)[len(*vers)-1], tag))
-			}
-		}
-		ezlog.Out()
-		if vers == nil || !(len(*vers) > 0 && strcase.EqualFold((*vers)[len(*vers)-1], tag)) {
-			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not last tag").String())
-		}
+		tags, e = repo.Tags()
+	} else {
+		e = errors.New(t.WorkPath + ": " + e.Error())
+	}
+	if e == nil {
+		e = tags.ForEach(func(tr *plumbing.Reference) error {
+			_vers = append(_vers, tr.Name().Short())
+			return nil
+		})
+		semver.Sort(_vers)
+		ezlog.Debug().N(prefix).N("vers").Lm(_vers).Out()
 	}
 
-	return e
-}
-
-func ChkVerVersion(workPath, tag string) (e error) {
-	prefix := "ChkVersion"
-
-	var (
-		filePath string
-		ver      string
-	)
-
-	ver, filePath, e = GetVerVersion(workPath)
-	if e == nil {
-		if !strcase.EqualFold(ver, tag) {
-			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not found").String())
-		}
-	}
-
-	return e
+	return &_vers, e
 }
