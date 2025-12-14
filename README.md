@@ -1,6 +1,6 @@
 # go-chktag [![Paypal donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/donate/?business=HZF49NM9D35SJ&no_recurring=0&currency_code=CAD)
 
-Command line tool checking `version.go`, `CHANGELOG.md` and git tag before tagging.
+Go repository command line tool to check `version.go`, `CHANGELOG.md` and git tag before tagging.
 
 - [Install](#install)
 - [What It Does](#what-it-does)
@@ -24,13 +24,17 @@ Download
 
 ### What It Does
 
-> This is a very simple and opinionated git tag checking tool. It is intended to be used before adding new tag to a git repository.
+This is a very simple and opinionated go repository checking tool. It is intended to be used before adding new git tag.
 
 - Multiple directories checking
 - `-t <tag>`, checks if the tag
-  - already exist in git tag (fail if exist)
-  - exists in `version.go` (fail if not exit)
-  - exists in `CHANGELOG.md` (fail if not exit)
+
+  Check|Exist|Not Exist
+  --|--|--
+  In git tags|Fail|Pass
+  In `version.go`|Pass|Fail
+  In `CHANGELOG.md`|Pass|Fail
+
 - Without `-t`, gets and prints tags information from
   - git tag
   - `version.go`
