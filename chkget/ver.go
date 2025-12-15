@@ -77,7 +77,7 @@ func (t *Ver) get() *Ver {
 	// check version.go
 	t.filePath = file.FindFile(t.WorkPath, global.FileVersion, false)
 	if t.filePath == "" {
-		t.Base.Err = errors.New(global.FileVersion + " not found")
+		t.Base.Err = errors.New(t.WorkPath + ": " + global.FileVersion + " not found")
 	}
 	if t.Base.Err == nil {
 		ezlog.Debug().N(prefix).N("file").M(t.filePath).Out()

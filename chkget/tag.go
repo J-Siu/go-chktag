@@ -60,21 +60,20 @@ func (t *GitTag) Err() error                   { return t.Base.Err }
 func (t *GitTag) FilePath() (filePath *string) { return &t.filePath }
 func (t *GitTag) Tags() (tags *[]string)       { return &t.tags }
 
+// Check if git tag already exist
 func (t *GitTag) Chk(tag string) IChkGet {
 	prefix := t.MyType + ".Chk"
 	if t.Base.Err == nil {
 		if str.ArrayContains(&t.tags, &tag, false) {
-			t.Base.Err = errors.New(prefix + ": " + tag + " already exist")
 			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(tag).M("already exist").String())
 		}
 	}
 	return t
 }
 
-// Check if tag is the last tag in git log/tag
+// Get all git tag
 func (t *GitTag) get() *GitTag {
-	prefix := t.MyType + ".Get"
-
+	prefix := t.MyType + ".get"
 	var (
 		repo *git.Repository
 		tags storer.ReferenceIter

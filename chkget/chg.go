@@ -28,7 +28,6 @@ import (
 
 	"github.com/J-Siu/go-chktag/global"
 	"github.com/J-Siu/go-helper/v2/basestruct"
-	"github.com/J-Siu/go-helper/v2/errs"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
 	"github.com/charlievieth/strcase"
@@ -76,8 +75,7 @@ func (t *Chg) Chk(tag string) IChkGet {
 
 // Return all versions from CHANGELOG.md
 func (t *Chg) get() *Chg {
-	prefix := "GetVerChangeLog"
-
+	prefix := t.MyType + ".get"
 	var (
 		content *[]string
 		matches [][]string
@@ -86,7 +84,7 @@ func (t *Chg) get() *Chg {
 	)
 	t.filePath = file.FindFile(t.WorkPath, global.FileChangLog, false)
 	if t.filePath == "" {
-		t.Base.Err = errors.New(global.FileVersion + " not found")
+		t.Base.Err = errors.New(t.WorkPath + ": " + global.FileChangLog + " not found")
 	}
 	if t.Base.Err == nil {
 		ezlog.Debug().N(prefix).N("file").M(t.filePath).Out()
@@ -106,7 +104,5 @@ func (t *Chg) get() *Chg {
 		}
 		ezlog.Debug().N(prefix).N("vers").Lm(t.tags).Out()
 	}
-
-	errs.Queue(prefix, t.Base.Err)
 	return t
 }
