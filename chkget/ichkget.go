@@ -22,36 +22,10 @@ THE SOFTWARE.
 
 package chkget
 
-import (
-	"github.com/J-Siu/go-chktag/global"
-	"github.com/J-Siu/go-helper/v2/errs"
-	"github.com/J-Siu/go-helper/v2/ezlog"
-)
-
 type IChkGet interface {
 	Chk(tag string) IChkGet
 	Err() error
 	FilePath() *string
 	New(workPath string) IChkGet
 	Tags() *[]string
-}
-
-func ChkTag(chkget IChkGet) {
-	errs.Queue("", chkget.Chk(global.Flag.Tag).Err())
-}
-
-func GetTag(chkget IChkGet) {
-	errs.Queue("", chkget.Err())
-	if chkget.Err() == nil {
-		ezlog.Log().N(chkget.FilePath())
-		tags := *chkget.Tags()
-		if len(tags) > 0 {
-			if global.Flag.Verbose {
-				ezlog.Lm(tags)
-			} else {
-				ezlog.M(tags[len(tags)-1])
-			}
-		}
-		ezlog.Out()
-	}
 }

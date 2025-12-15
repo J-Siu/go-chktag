@@ -63,9 +63,9 @@ Use -t to specify tag version.`,
 			}
 			for _, i := range iChkGets {
 				if global.Flag.Tag == "" {
-					chkget.GetTag(i.New(path))
+					getTag(i.New(path))
 				} else {
-					chkget.ChkTag(i.New(path))
+					chkTag(i.New(path))
 					if errs.IsEmpty() {
 						ezlog.Log().M("Passed").Out()
 					}
@@ -91,4 +91,24 @@ func init() {
 	cmd.PersistentFlags().BoolVarP(&global.Flag.Debug, "debug", "d", false, "Enable debug")
 	cmd.PersistentFlags().BoolVarP(&global.Flag.Verbose, "verbose", "v", false, "Enable verbose")
 	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "check specific tag")
+}
+
+func chkTag(chkget chkget.IChkGet) {
+	errs.Queue("", chkget.Chk(global.Flag.Tag).Err())
+}
+
+func getTag(chkget chkget.IChkGet) {
+	errs.Queue("", chkget.Err())
+	if chkget.Err() == nil {
+		ezlog.Log().N(chkget.FilePath())
+		tags := *chkget.Tags()
+		if len(tags) > 0 {
+			if global.Flag.Verbose {
+				ezlog.Lm(tags)
+			} else {
+				ezlog.M(tags[len(tags)-1])
+			}
+		}
+		ezlog.Out()
+	}
 }
