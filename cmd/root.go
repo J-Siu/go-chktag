@@ -25,8 +25,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/J-Siu/go-chktag/chkget"
 	"github.com/J-Siu/go-chktag/global"
-	"github.com/J-Siu/go-chktag/lib"
 	"github.com/J-Siu/go-helper/v2/errs"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/spf13/cobra"
@@ -36,7 +36,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "go-chktag",
 	Short: `Check tag information`,
-	Long: `Show ` + lib.FileChangLog + `, ` + lib.FileVersion + ` and git tag.
+	Long: `Show ` + global.FileChangLog + `, ` + global.FileVersion + ` and git tag.
 Use -t to specify tag version.`,
 	Version: global.Version,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -47,7 +47,12 @@ Use -t to specify tag version.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			argc = len(args)
+			argc     = len(args)
+			iChkGets = []chkget.IChkGet{
+				new(chkget.Ver),
+				new(chkget.Chg),
+				new(chkget.GitTag),
+			}
 		)
 		if argc == 0 {
 			args = []string{"."}
@@ -56,12 +61,14 @@ Use -t to specify tag version.`,
 			if argc > 1 {
 				ezlog.Log().N(path).Out()
 			}
-			if global.Flag.Tag == "" {
-				getTag(path)
-			} else {
-				chkTag(path)
-				if errs.IsEmpty() {
-					ezlog.Log().M("Passed").Out()
+			for _, i := range iChkGets {
+				if global.Flag.Tag == "" {
+					chkget.GetTag(i.New(path))
+				} else {
+					chkget.ChkTag(i.New(path))
+					if errs.IsEmpty() {
+						ezlog.Log().M("Passed").Out()
+					}
 				}
 			}
 		}
@@ -84,54 +91,4 @@ func init() {
 	cmd.PersistentFlags().BoolVarP(&global.Flag.Debug, "debug", "d", false, "Enable debug")
 	cmd.PersistentFlags().BoolVarP(&global.Flag.Verbose, "verbose", "v", false, "Enable verbose")
 	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "check specific tag")
-}
-
-func chkTag(path string) {
-	errs.Queue("", new(lib.Ver).New(path).Chk(global.Flag.Tag))
-	errs.Queue("", new(lib.Chg).New(path).Chk(global.Flag.Tag))
-	errs.Queue("", new(lib.Tag).New(path).Chk(global.Flag.Tag))
-}
-
-func getTag(path string) {
-	var (
-		e        error
-		filePath string
-		ver      string
-		vers     *[]string
-	)
-
-	ver, filePath, e = new(lib.Ver).New(path).Get()
-	errs.Queue("", e)
-	if e == nil {
-		ezlog.Log().N(filePath).M(ver).Out()
-	}
-
-	vers, filePath, e = new(lib.Chg).New(path).Get()
-	errs.Queue("", e)
-	if e == nil {
-		ezlog.Log().N(filePath)
-		if vers != nil && len(*vers) > 0 {
-			if global.Flag.Verbose {
-				ezlog.Lm(vers)
-			} else {
-				ezlog.M((*vers)[len(*vers)-1])
-			}
-		}
-		ezlog.Out()
-	}
-
-	vers, e = new(lib.Tag).New(path).Get()
-	errs.Queue("", e)
-	if e == nil {
-		ezlog.Log().N("Git Tag")
-		if vers != nil && len(*vers) > 0 {
-			if global.Flag.Verbose {
-				ezlog.Lm(vers)
-			} else {
-				ezlog.M((*vers)[len(*vers)-1])
-			}
-		}
-		ezlog.Out()
-	}
-
 }

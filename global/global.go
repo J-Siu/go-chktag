@@ -24,6 +24,11 @@ package global
 
 import "github.com/J-Siu/go-chktag/lib"
 
+const (
+	FileVersion  = "version.go"
+	FileChangLog = "CHANGELOG.md"
+)
+
 var (
 	Flag lib.TypeFlag
 )

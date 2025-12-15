@@ -20,12 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-package lib
+package chkget
 
 import (
 	"errors"
 	"regexp"
 
+	"github.com/J-Siu/go-chktag/global"
 	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/errs"
 	"github.com/J-Siu/go-helper/v2/ezlog"
@@ -37,77 +38,75 @@ import (
 type Chg struct {
 	*basestruct.Base
 	WorkPath string
+	filePath string
+	tags     []string
 }
 
-func (t *Chg) New(workPath string) *Chg {
+func (t *Chg) New(workPath string) IChkGet {
 	t.Base = new(basestruct.Base)
-	t.MyType = "ChangeLog"
+	t.MyType = "Chg"
 	t.WorkPath = workPath
+	t.get()
+	t.Initialized = true
 	return t
 }
 
+func (t *Chg) Err() error                   { return t.Base.Err }
+func (t *Chg) FilePath() (filePath *string) { return &t.filePath }
+func (t *Chg) Tags() (tags *[]string)       { return &t.tags }
+
 // Check if tag is the last tag in CHANGELOG.md
-func (t *Chg) Chk(tag string) (e error) {
+func (t *Chg) Chk(tag string) IChkGet {
 	prefix := t.MyType + ".Chk"
-
 	var (
-		filePath string
-		vers     *[]string
+		tagNum = len(t.tags)
 	)
-
-	vers, filePath, e = t.Get()
-	if e == nil {
-		ezlog.Debug().N(prefix).
-			Ln("vers==nil").M(vers == nil)
-		if vers != nil {
-			ezlog.Ln("len(*vers)").M(len(*vers))
-			if len(*vers) > 0 {
-				ezlog.Ln("!strcase.EqualFold((*vers)[len(*vers)-1], tag)").M(!strcase.EqualFold((*vers)[len(*vers)-1], tag))
-			}
+	if t.Base.Err == nil {
+		ezlog.Debug().N(prefix).Ln("0 tags").M(len(t.tags) == 0)
+		if tagNum > 0 {
+			ezlog.Ln("!strcase.EqualFold((*vers)[len(*vers)-1], tag)").M(!strcase.EqualFold(t.tags[tagNum-1], tag))
 		}
 		ezlog.Out()
-		if vers == nil || !(len(*vers) > 0 && strcase.EqualFold((*vers)[len(*vers)-1], tag)) {
-			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not last tag").String())
+		if tagNum == 0 && strcase.EqualFold(t.tags[tagNum-1], tag) {
+			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(t.filePath).N(tag).M("not last tag").String())
 		}
 	}
-
-	return e
+	return t
 }
 
 // Return all versions from CHANGELOG.md
-func (t *Chg) Get() (vers *[]string, filePath string, e error) {
+func (t *Chg) get() *Chg {
 	prefix := "GetVerChangeLog"
 
 	var (
-		_vers   []string
 		content *[]string
 		matches [][]string
 		pattern string
 		re      *regexp.Regexp
 	)
-	filePath = file.FindFile(t.WorkPath, FileChangLog, false)
-	if filePath == "" {
-		e = errors.New(FileVersion + " not found")
+	t.filePath = file.FindFile(t.WorkPath, global.FileChangLog, false)
+	if t.filePath == "" {
+		t.Base.Err = errors.New(global.FileVersion + " not found")
 	}
-	if e == nil {
-		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
-		content, e = file.ReadStrArray(filePath)
+	if t.Base.Err == nil {
+		ezlog.Debug().N(prefix).N("file").M(t.filePath).Out()
+		content, t.Base.Err = file.ReadStrArray(t.filePath)
 	}
-	if e == nil {
+	if t.Base.Err == nil {
 		// Get last Version = "- <ver>"
 		pattern = `^- (.*)`
 		re = regexp.MustCompile(pattern)
 		for _, line := range *content {
-			// Extract <ver>
 			ezlog.Debug().N(prefix).N("line").M(line).Out()
 			matches = re.FindAllStringSubmatch(line, -1)
+			// Extract <ver>
 			if matches != nil && len(matches[0][1]) > 0 {
-				_vers = append(_vers, matches[0][1])
+				t.tags = append(t.tags, matches[0][1])
 			}
 		}
-		ezlog.Debug().N(prefix).N("vers").Lm(_vers).Out()
+		ezlog.Debug().N(prefix).N("vers").Lm(t.tags).Out()
 	}
 
-	errs.Queue(prefix, e)
-	return &_vers, filePath, e
+	errs.Queue(prefix, t.Base.Err)
+	return t
 }

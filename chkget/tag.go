@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-package lib
+package chkget
 
 import (
 	"errors"
@@ -35,57 +35,65 @@ import (
 )
 
 // Get/Check tags of git tag
-type Tag struct {
+type GitTag struct {
 	*basestruct.Base
 	WorkPath string
+	filePath string
+	tags     []string
 }
 
-func (t *Tag) New(workPath string) *Tag {
+func (t *GitTag) New(workPath string) IChkGet {
 	t.Base = new(basestruct.Base)
 	t.MyType = "GitTag"
 	t.WorkPath = workPath
+	t.get()
+	if t.WorkPath == "." {
+		t.filePath = "git tag"
+	} else {
+		t.filePath = workPath + "/(git tag)"
+	}
+	t.Initialized = true
 	return t
 }
 
-func (t *Tag) Chk(tag string) (e error) {
+func (t *GitTag) Err() error                   { return t.Base.Err }
+func (t *GitTag) FilePath() (filePath *string) { return &t.filePath }
+func (t *GitTag) Tags() (tags *[]string)       { return &t.tags }
+
+func (t *GitTag) Chk(tag string) IChkGet {
 	prefix := t.MyType + ".Chk"
-	var (
-		vers *[]string
-	)
-	vers, e = t.Get()
-	if e == nil {
-		if str.ArrayContains(vers, &tag, false) {
-			e = errors.New(prefix + ": " + tag + " already exist")
-			e = errors.New(ezlog.Log().N(prefix).N(tag).M("already exist").String())
+	if t.Base.Err == nil {
+		if str.ArrayContains(&t.tags, &tag, false) {
+			t.Base.Err = errors.New(prefix + ": " + tag + " already exist")
+			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(tag).M("already exist").String())
 		}
 	}
-	return e
+	return t
 }
 
 // Check if tag is the last tag in git log/tag
-func (t *Tag) Get() (vers *[]string, e error) {
+func (t *GitTag) get() *GitTag {
 	prefix := t.MyType + ".Get"
 
 	var (
-		_vers []string
-		repo  *git.Repository
-		tags  storer.ReferenceIter
+		repo *git.Repository
+		tags storer.ReferenceIter
 	)
 
-	repo, e = git.PlainOpen(t.WorkPath)
-	if e == nil {
-		tags, e = repo.Tags()
+	repo, t.Base.Err = git.PlainOpen(t.WorkPath)
+	if t.Base.Err == nil {
+		tags, t.Base.Err = repo.Tags()
 	} else {
-		e = errors.New(t.WorkPath + ": " + e.Error())
+		t.Base.Err = errors.New(t.WorkPath + ": " + t.Base.Err.Error())
 	}
-	if e == nil {
-		e = tags.ForEach(func(tr *plumbing.Reference) error {
-			_vers = append(_vers, tr.Name().Short())
+	if t.Base.Err == nil {
+		t.Base.Err = tags.ForEach(func(tr *plumbing.Reference) error {
+			t.tags = append(t.tags, tr.Name().Short())
 			return nil
 		})
-		semver.Sort(_vers)
-		ezlog.Debug().N(prefix).N("vers").Lm(_vers).Out()
+		semver.Sort(t.tags)
+		ezlog.Debug().N(prefix).N("vers").Lm(t.tags).Out()
 	}
 
-	return &_vers, e
+	return t
 }

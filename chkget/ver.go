@@ -20,12 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-package lib
+package chkget
 
 import (
 	"errors"
 	"regexp"
 
+	"github.com/J-Siu/go-chktag/global"
 	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
@@ -36,36 +37,37 @@ import (
 type Ver struct {
 	*basestruct.Base
 	WorkPath string
+	filePath string
+	tags     []string
 }
 
-func (t *Ver) New(workPath string) *Ver {
+func (t *Ver) New(workPath string) IChkGet {
 	t.Base = new(basestruct.Base)
 	t.MyType = "Ver"
 	t.WorkPath = workPath
+	t.get()
+	t.Initialized = true
 	return t
 }
 
-func (t *Ver) Chk(tag string) (e error) {
-	prefix := "ChkVersion"
+func (t *Ver) Err() error                   { return t.Base.Err }
+func (t *Ver) FilePath() (filePath *string) { return &t.filePath }
+func (t *Ver) Tags() (tags *[]string)       { return &t.tags }
 
-	var (
-		filePath string
-		ver      string
-	)
+func (t *Ver) Chk(tag string) IChkGet {
+	prefix := t.MyType + ".Chk"
 
-	ver, filePath, e = t.Get()
-	if e == nil {
-		if !strcase.EqualFold(ver, tag) {
-			e = errors.New(ezlog.Log().N(prefix).N(filePath).N(tag).M("not found").String())
+	if t.Base.Err == nil {
+		if !strcase.EqualFold(t.tags[0], tag) {
+			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(t.filePath).N(tag).M("not found").String())
 		}
 	}
-
-	return e
+	return t
 }
 
 // Return version from version.go
-func (t *Ver) Get() (ver, filePath string, e error) {
-	prefix := "GetVerVersion"
+func (t *Ver) get() *Ver {
+	prefix := t.MyType + ".get"
 	var (
 		content *[]string
 		matches [][]string
@@ -73,15 +75,15 @@ func (t *Ver) Get() (ver, filePath string, e error) {
 		re      *regexp.Regexp
 	)
 	// check version.go
-	filePath = file.FindFile(t.WorkPath, FileVersion, false)
-	if filePath == "" {
-		e = errors.New(FileVersion + " not found")
+	t.filePath = file.FindFile(t.WorkPath, global.FileVersion, false)
+	if t.filePath == "" {
+		t.Base.Err = errors.New(global.FileVersion + " not found")
 	}
-	if e == nil {
-		ezlog.Debug().N(prefix).N("file").M(filePath).Out()
-		content, e = file.ReadStrArray(filePath)
+	if t.Base.Err == nil {
+		ezlog.Debug().N(prefix).N("file").M(t.filePath).Out()
+		content, t.Base.Err = file.ReadStrArray(t.filePath)
 	}
-	if e == nil {
+	if t.Base.Err == nil {
 		// Get line: Version = "<ver>"
 		pattern = `\s*Version\s*(string)?\s*=\s*\"(.*)\"`
 		re = regexp.MustCompile(pattern)
@@ -89,14 +91,14 @@ func (t *Ver) Get() (ver, filePath string, e error) {
 			matches = re.FindAllStringSubmatch(line, -1)
 			ezlog.Debug().N(prefix).N("line").M(line).Out()
 			ezlog.Debug().N(prefix).N("matches").M(matches).Out()
+			// Extract <ver>
 			if matches != nil && len(matches[0][2]) != 0 {
-				// Extract <ver>
-				ver = matches[0][2]
-				ezlog.Debug().N(prefix).N("ver").M(ver).Out()
+				t.tags = append(t.tags, matches[0][2])
+				ezlog.Debug().N(prefix).N("ver").M(t.tags[0]).Out()
 				break
 			}
 		}
 	}
 
-	return ver, filePath, e
+	return t
 }
