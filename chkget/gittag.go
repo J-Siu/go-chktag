@@ -25,7 +25,6 @@ package chkget
 import (
 	"errors"
 
-	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
 	"github.com/go-git/go-git/v6"
@@ -36,43 +35,34 @@ import (
 
 // Get/Check tags of git tag
 type GitTag struct {
-	*basestruct.Base
-	WorkPath string
-	filePath string
-	tags     []string
+	ChkGet
 }
 
 func (t *GitTag) New(workPath string) IChkGet {
-	t.Base = new(basestruct.Base)
+	t.ChkGet.New(workPath)
 	t.MyType = "GitTag"
-	t.WorkPath = workPath
-	t.get()
 	if t.WorkPath == "." {
 		t.filePath = "git tag"
 	} else {
 		t.filePath = workPath + "/(git tag)"
 	}
+	t.Get()
 	t.Initialized = true
 	return t
 }
 
-func (t *GitTag) Err() error                   { return t.Base.Err }
-func (t *GitTag) FilePath() (filePath *string) { return &t.filePath }
-func (t *GitTag) Tags() (tags *[]string)       { return &t.tags }
-
 // Check if git tag already exist
 func (t *GitTag) Chk(tag string) IChkGet {
-	prefix := t.MyType + ".Chk"
 	if t.Base.Err == nil {
 		if str.ArrayContains(&t.tags, &tag, false) {
-			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(tag).M("already exist").String())
+			t.Base.Err = errors.New(ezlog.Log().N(t.filePath).N(tag).M("already exist").String())
 		}
 	}
 	return t
 }
 
 // Get all git tag
-func (t *GitTag) get() *GitTag {
+func (t *GitTag) Get() IChkGet {
 	prefix := t.MyType + ".get"
 	var (
 		repo *git.Repository

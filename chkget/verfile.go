@@ -27,46 +27,35 @@ import (
 	"regexp"
 
 	"github.com/J-Siu/go-chktag/global"
-	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
 	"github.com/charlievieth/strcase"
 )
 
 // Get/Check version in version.go
-type Ver struct {
-	*basestruct.Base
-	WorkPath string
-	filePath string
-	tags     []string
+type VerFile struct {
+	ChkGet
 }
 
-func (t *Ver) New(workPath string) IChkGet {
-	t.Base = new(basestruct.Base)
+func (t *VerFile) New(workPath string) IChkGet {
+	t.ChkGet.New(workPath)
 	t.MyType = "Ver"
-	t.WorkPath = workPath
-	t.get()
+	t.Get()
 	t.Initialized = true
 	return t
 }
 
-func (t *Ver) Err() error                   { return t.Base.Err }
-func (t *Ver) FilePath() (filePath *string) { return &t.filePath }
-func (t *Ver) Tags() (tags *[]string)       { return &t.tags }
-
-func (t *Ver) Chk(tag string) IChkGet {
-	prefix := t.MyType + ".Chk"
-
+func (t *VerFile) Chk(tag string) IChkGet {
 	if t.Base.Err == nil {
 		if !strcase.EqualFold(t.tags[0], tag) {
-			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(t.filePath).N(tag).M("not found").String())
+			t.Base.Err = errors.New(ezlog.Log().N(t.filePath).N(tag).M("not found").String())
 		}
 	}
 	return t
 }
 
 // Return version from version.go
-func (t *Ver) get() *Ver {
+func (t *VerFile) Get() IChkGet {
 	prefix := t.MyType + ".get"
 	var (
 		content *[]string

@@ -47,33 +47,39 @@ Use -t to specify tag version.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			argc     = len(args)
-			iChkGets = []chkget.IChkGet{
-				new(chkget.Ver),
-				new(chkget.Chg),
-				new(chkget.GitTag),
-			}
+			argc        = len(args)
+			chkPass     bool
+			currDirOnly bool
+			e           error
+			iChkGets    = []chkget.IChkGet{new(chkget.VerFile), new(chkget.ChgLog), new(chkget.GitTag)}
 		)
 		if argc == 0 {
 			args = []string{"."}
+			currDirOnly = true
 		}
 		for _, path := range args {
-			if argc > 1 {
-				ezlog.Log().N(path).Out()
-			}
-			for _, i := range iChkGets {
-				if global.Flag.Tag == "" {
-					getTag(i.New(path))
-				} else {
-					chkTag(i.New(path))
-					if errs.IsEmpty() {
-						ezlog.Log().M("Passed").Out()
+			chkPass = true
+			for _, obj := range iChkGets {
+				e = obj.New(path).Err()
+				// Print Tag
+				if e == nil {
+					outputTag(obj)
+				}
+				// Check Tag
+				if global.Flag.Tag != "" {
+					if e == nil {
+						e = obj.Chk(global.Flag.Tag).Err()
+						chkPass = chkPass && e == nil
+					} else {
+						chkPass = false
 					}
 				}
+				errs.Queue("", e)
 			}
+			outputChk(path, chkPass, currDirOnly)
 		}
 		if errs.NotEmpty() {
-			ezlog.Err().L().M(errs.Errs).Out()
+			ezlog.Err().L().M(errs.Errs()).Out()
 			errs.Clear()
 		}
 	},
@@ -93,22 +99,25 @@ func init() {
 	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "check specific tag")
 }
 
-func chkTag(chkget chkget.IChkGet) {
-	errs.Queue("", chkget.Chk(global.Flag.Tag).Err())
+func outputTag(obj chkget.IChkGet) {
+	ezlog.Log().N(obj.FilePath())
+	tags := *obj.Tags()
+	if len(tags) > 0 {
+		if global.Flag.Verbose {
+			ezlog.Lm(tags)
+		} else {
+			ezlog.M(tags[len(tags)-1])
+		}
+	}
+	ezlog.Out()
 }
 
-func getTag(chkget chkget.IChkGet) {
-	errs.Queue("", chkget.Err())
-	if chkget.Err() == nil {
-		ezlog.Log().N(chkget.FilePath())
-		tags := *chkget.Tags()
-		if len(tags) > 0 {
-			if global.Flag.Verbose {
-				ezlog.Lm(tags)
-			} else {
-				ezlog.M(tags[len(tags)-1])
-			}
+func outputChk(path string, pass bool, currDirOnly bool) {
+	if global.Flag.Tag != "" {
+		ezlog.Log()
+		if !currDirOnly {
+			ezlog.N(path)
 		}
-		ezlog.Out()
+		ezlog.Ok(pass).Out()
 	}
 }

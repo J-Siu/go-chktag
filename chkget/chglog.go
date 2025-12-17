@@ -27,35 +27,26 @@ import (
 	"regexp"
 
 	"github.com/J-Siu/go-chktag/global"
-	"github.com/J-Siu/go-helper/v2/basestruct"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/file"
 	"github.com/charlievieth/strcase"
 )
 
 // Get/Check versions in CHANGELOG.md
-type Chg struct {
-	*basestruct.Base
-	WorkPath string
-	filePath string
-	tags     []string
+type ChgLog struct {
+	ChkGet
 }
 
-func (t *Chg) New(workPath string) IChkGet {
-	t.Base = new(basestruct.Base)
+func (t *ChgLog) New(workPath string) IChkGet {
+	t.ChkGet.New(workPath)
 	t.MyType = "Chg"
-	t.WorkPath = workPath
-	t.get()
+	t.Get()
 	t.Initialized = true
 	return t
 }
 
-func (t *Chg) Err() error                   { return t.Base.Err }
-func (t *Chg) FilePath() (filePath *string) { return &t.filePath }
-func (t *Chg) Tags() (tags *[]string)       { return &t.tags }
-
 // Check if tag is the last tag in CHANGELOG.md
-func (t *Chg) Chk(tag string) IChkGet {
+func (t *ChgLog) Chk(tag string) IChkGet {
 	prefix := t.MyType + ".Chk"
 	var (
 		tagNum = len(t.tags)
@@ -66,15 +57,15 @@ func (t *Chg) Chk(tag string) IChkGet {
 			ezlog.Ln("!strcase.EqualFold((*vers)[len(*vers)-1], tag)").M(!strcase.EqualFold(t.tags[tagNum-1], tag))
 		}
 		ezlog.Out()
-		if tagNum == 0 && strcase.EqualFold(t.tags[tagNum-1], tag) {
-			t.Base.Err = errors.New(ezlog.Log().N(prefix).N(t.filePath).N(tag).M("not last tag").String())
+		if tagNum != 0 && !strcase.EqualFold(t.tags[tagNum-1], tag) {
+			t.Base.Err = errors.New(ezlog.Log().N(t.filePath).N(tag).M("not last tag").String())
 		}
 	}
 	return t
 }
 
 // Return all versions from CHANGELOG.md
-func (t *Chg) get() *Chg {
+func (t *ChgLog) Get() IChkGet {
 	prefix := t.MyType + ".get"
 	var (
 		content *[]string
