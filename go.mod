@@ -3,7 +3,7 @@ module github.com/J-Siu/go-chktag
 go 1.25.2
 
 require (
-	github.com/J-Siu/go-helper/v2 v2.6.4
+	github.com/J-Siu/go-helper/v2 v2.6.5
 	github.com/charlievieth/strcase v0.0.5
 	github.com/go-git/go-git/v6 v6.0.0-20251212081956-e83cbb9651e8
 	github.com/spf13/cobra v1.10.2
