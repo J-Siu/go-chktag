@@ -24,13 +24,11 @@ package chkget
 
 import (
 	"errors"
+	"strings"
 
+	"github.com/J-Siu/go-gitcmd/v2/gitcmd"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
-	"github.com/go-git/go-git/v6"
-	"github.com/go-git/go-git/v6/plumbing"
-	"github.com/go-git/go-git/v6/plumbing/storer"
-	"golang.org/x/mod/semver"
 )
 
 // Get/Check tags of git tag
@@ -63,26 +61,16 @@ func (t *GitTag) Chk(tag string) IChkGet {
 
 // Get all git tag
 func (t *GitTag) Get() IChkGet {
-	prefix := t.MyType + ".get"
+	prefix := t.MyType + ".Get"
 	var (
-		repo *git.Repository
-		tags storer.ReferenceIter
+		gitCmd = new(gitcmd.GitCmd).New(&t.WorkPath)
+		outStr = gitCmd.Tag()
 	)
-
-	repo, t.Base.Err = git.PlainOpen(t.WorkPath)
-	if t.Base.Err == nil {
-		tags, t.Base.Err = repo.Tags()
+	if gitCmd.Err == nil {
+		t.tags = append(t.tags, *outStr...)
+		ezlog.Debug().N(prefix).N("tags").Lm(t.tags).Out()
 	} else {
-		t.Base.Err = errors.New(t.WorkPath + ": " + t.Base.Err.Error())
+		t.Base.Err = errors.New(t.WorkPath + ": " + strings.Trim(gitCmd.Stderr.String(), "\n"))
 	}
-	if t.Base.Err == nil {
-		t.Base.Err = tags.ForEach(func(tr *plumbing.Reference) error {
-			t.tags = append(t.tags, tr.Name().Short())
-			return nil
-		})
-		semver.Sort(t.tags)
-		ezlog.Debug().N(prefix).N("vers").Lm(t.tags).Out()
-	}
-
 	return t
 }

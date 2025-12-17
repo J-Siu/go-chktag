@@ -29,3 +29,5 @@
   - refactor lib
 - v1.1.2
   - use interface
+- v1.1.3
+  - switch go-git to go-gitcmd

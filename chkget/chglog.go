@@ -66,7 +66,7 @@ func (t *ChgLog) Chk(tag string) IChkGet {
 
 // Return all versions from CHANGELOG.md
 func (t *ChgLog) Get() IChkGet {
-	prefix := t.MyType + ".get"
+	prefix := t.MyType + ".Get"
 	var (
 		content *[]string
 		matches [][]string

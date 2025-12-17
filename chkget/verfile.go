@@ -56,7 +56,7 @@ func (t *VerFile) Chk(tag string) IChkGet {
 
 // Return version from version.go
 func (t *VerFile) Get() IChkGet {
-	prefix := t.MyType + ".get"
+	prefix := t.MyType + ".Get"
 	var (
 		content *[]string
 		matches [][]string
