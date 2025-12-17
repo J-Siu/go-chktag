@@ -22,11 +22,24 @@ THE SOFTWARE.
 
 package chkget
 
-type IChkGet interface {
-	Chk(tag string) IChkGet
-	Get() IChkGet
-	Err() error
-	FilePath() *string
-	New(workPath string) IChkGet
-	Tags() *[]string
+import "github.com/J-Siu/go-helper/v2/basestruct"
+
+type ChkGet struct {
+	basestruct.Base
+	WorkPath string
+	filePath string
+	tags     []string
 }
+
+func (t *ChkGet) New(workPath string) IChkGet {
+	t.WorkPath = workPath
+	t.Base.Err = nil
+	t.tags = nil
+	return t
+}
+
+func (t *ChkGet) Chk(tag string) IChkGet       { return t }
+func (t *ChkGet) Get() IChkGet                 { return t }
+func (t *ChkGet) Err() error                   { return t.Base.Err }
+func (t *ChkGet) FilePath() (filePath *string) { return &t.filePath }
+func (t *ChkGet) Tags() (tags *[]string)       { return &t.tags }
