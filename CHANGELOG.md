@@ -31,3 +31,5 @@
   - use interface
 - v1.1.3
   - switch go-git to go-gitcmd
+- v1.1.4
+  - fix git tag sorting

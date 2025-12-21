@@ -29,6 +29,7 @@ import (
 	"github.com/J-Siu/go-gitcmd/v2/gitcmd"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
+	"golang.org/x/mod/semver"
 )
 
 // Get/Check tags of git tag
@@ -68,6 +69,7 @@ func (t *GitTag) Get() IChkGet {
 	)
 	if gitCmd.Err == nil {
 		t.tags = append(t.tags, *outStr...)
+		semver.Sort(t.tags)
 		ezlog.Debug().N(prefix).N("tags").Lm(t.tags).Out()
 	} else {
 		t.Base.Err = errors.New(t.WorkPath + ": " + strings.Trim(gitCmd.Stderr.String(), "\n"))

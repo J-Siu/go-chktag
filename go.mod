@@ -7,6 +7,7 @@ require (
 	github.com/J-Siu/go-helper/v2 v2.6.5
 	github.com/charlievieth/strcase v0.0.5
 	github.com/spf13/cobra v1.10.2
+	golang.org/x/mod v0.31.0
 )
 
 require (
