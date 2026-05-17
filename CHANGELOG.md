@@ -33,3 +33,6 @@
   - switch go-git to go-gitcmd
 - v1.1.4
   - fix git tag sorting
+- v1.1.5
+  - fix git tag sorting
+  - update go-helper/v2

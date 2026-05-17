@@ -26,7 +26,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/J-Siu/go-gitcmd/v2/gitcmd"
+	"github.com/J-Siu/go-gitcmd/v3/gitcmd"
 	"github.com/J-Siu/go-helper/v2/ezlog"
 	"github.com/J-Siu/go-helper/v2/str"
 	"golang.org/x/mod/semver"
@@ -53,7 +53,7 @@ func (t *GitTag) New(workPath string) IChkGet {
 // Check if git tag already exist
 func (t *GitTag) Chk(tag string) IChkGet {
 	if t.Base.Err == nil {
-		if str.ArrayContains(&t.tags, &tag, false) {
+		if str.ArrayContains(&t.tags, tag, false) {
 			t.Base.Err = errors.New(ezlog.Log().N(t.filePath).N(tag).M("already exist").String())
 		}
 	}
@@ -64,8 +64,8 @@ func (t *GitTag) Chk(tag string) IChkGet {
 func (t *GitTag) Get() IChkGet {
 	prefix := t.MyType + ".Get"
 	var (
-		gitCmd = new(gitcmd.GitCmd).New(&t.WorkPath)
-		outStr = gitCmd.Tag()
+		gitCmd = new(gitcmd.GitCmd).New(t.WorkPath)
+		outStr = gitCmd.TagList()
 	)
 	if gitCmd.Err == nil {
 		t.tags = append(t.tags, *outStr...)
