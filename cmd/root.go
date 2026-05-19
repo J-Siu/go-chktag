@@ -51,7 +51,12 @@ Use -t to specify tag version.`,
 			chkPass     bool
 			currDirOnly bool
 			e           error
-			iChkGets    = []chkget.IChkGet{new(chkget.VerFile), new(chkget.ChgLog), new(chkget.GitTag)}
+			iChkGets    = []chkget.IChkGet{
+				new(chkget.GitBranch),
+				new(chkget.GitTag),
+				new(chkget.ChgLog),
+				new(chkget.VerFile),
+			}
 		)
 		if argc == 0 {
 			args = []string{"."}
@@ -102,14 +107,14 @@ func init() {
 func outputTag(obj chkget.IChkGet) {
 	var (
 		tags   = obj.Tags()
-		tagNum = len(*tags)
+		tagNum = len(tags)
 	)
 	ezlog.Log().N(obj.FilePath())
 	if tagNum > 0 {
 		if global.Flag.Verbose {
 			ezlog.Lm(tags)
 		} else {
-			ezlog.M((*tags)[tagNum-1])
+			ezlog.M(tags[tagNum-1])
 		}
 	}
 	ezlog.Out()

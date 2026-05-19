@@ -39,7 +39,7 @@ type VerFile struct {
 
 func (t *VerFile) New(workPath string) IChkGet {
 	t.ChkGet.New(workPath)
-	t.MyType = "Ver"
+	t.MyType = "VerFile"
 	t.Get()
 	t.Initialized = true
 	return t

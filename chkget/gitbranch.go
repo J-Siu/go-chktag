@@ -22,24 +22,48 @@ THE SOFTWARE.
 
 package chkget
 
-import "github.com/J-Siu/go-helper/v2/basestruct"
+import (
+	"errors"
+	"strings"
 
-type ChkGet struct {
-	basestruct.Base
-	WorkPath string
-	filePath string
-	tags     []string
+	"github.com/J-Siu/go-gitcmd/v3/gitcmd"
+	"github.com/J-Siu/go-helper/v2/ezlog"
+)
+
+// Get branch of git repo
+// - branch name is stored in tags[0]
+type GitBranch struct {
+	ChkGet
 }
 
-func (t *ChkGet) New(workPath string) IChkGet {
-	t.WorkPath = workPath
-	t.Base.Err = nil
-	t.tags = nil
+func (t *GitBranch) New(workPath string) IChkGet {
+	t.ChkGet.New(workPath)
+	t.MyType = "GitBranch"
+	if t.WorkPath == "." {
+		t.filePath = "git branch"
+	} else {
+		t.filePath = workPath + "/(git branch)"
+	}
+	t.Get()
+	t.Initialized = true
 	return t
 }
 
-func (t *ChkGet) Chk(tag string) IChkGet      { return t }
-func (t *ChkGet) Get() IChkGet                { return t }
-func (t *ChkGet) Err() error                  { return t.Base.Err }
-func (t *ChkGet) FilePath() (filePath string) { return t.filePath }
-func (t *ChkGet) Tags() (tags []string)       { return t.tags }
+// Place holder only
+func (t *GitBranch) Chk(tag string) IChkGet { return t }
+
+// Get all git tag
+func (t *GitBranch) Get() IChkGet {
+	prefix := t.MyType + ".Get"
+	var (
+		gitCmd = new(gitcmd.GitCmd).New(t.WorkPath)
+		branch = gitCmd.BranchCurrent().Run().Stdout.String()
+	)
+	if gitCmd.Err == nil {
+		t.tags = append(t.tags, branch)
+		ezlog.Debug().N(prefix).N("branch").Lm(t.tags[0]).Out()
+	} else {
+		t.Base.Err = errors.New(t.WorkPath + ": " + strings.Trim(gitCmd.Stderr.String(), "\n"))
+	}
+	return t
+}
