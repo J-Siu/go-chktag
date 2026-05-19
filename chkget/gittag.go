@@ -65,10 +65,10 @@ func (t *GitTag) Get() IChkGet {
 	prefix := t.MyType + ".Get"
 	var (
 		gitCmd = new(gitcmd.GitCmd).New(t.WorkPath)
-		outStr = gitCmd.TagList()
+		tags   = *gitCmd.TagList()
 	)
 	if gitCmd.Err == nil {
-		t.tags = append(t.tags, *outStr...)
+		t.tags = append(t.tags, tags...)
 		semver.Sort(t.tags)
 		ezlog.Debug().N(prefix).N("tags").Lm(t.tags).Out()
 	} else {
