@@ -24,9 +24,9 @@ package chkget
 
 type IChkGet interface {
 	Chk(tag string) IChkGet
-	Get() IChkGet
 	Err() error
 	FilePath() string
+	Get() IChkGet
 	New(workPath string) IChkGet
 	Tags() []string
 }
