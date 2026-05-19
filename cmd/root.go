@@ -51,7 +51,12 @@ Use -t to specify tag version.`,
 			chkPass     bool
 			currDirOnly bool
 			e           error
-			iChkGets    = []chkget.IChkGet{new(chkget.VerFile), new(chkget.ChgLog), new(chkget.GitTag)}
+			iChkGets    = []chkget.IChkGet{
+				new(chkget.GitBranch),
+				new(chkget.GitTag),
+				new(chkget.ChgLog),
+				new(chkget.VerFile),
+			}
 		)
 		if argc == 0 {
 			args = []string{"."}
