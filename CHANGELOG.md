@@ -36,3 +36,10 @@
 - v1.1.5
   - fix git tag sorting
   - update go-helper/v2
+- v1.1.6
+  - GitTag.Get(): fix nil pointer
+  - GitTag.Get(): minor syntax update
+  - IChkGet: don't return point
+  - IChkGet: sort interface
+  - VerFile: fix t.MyType
+  - add git branch support
