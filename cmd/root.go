@@ -102,14 +102,14 @@ func init() {
 func outputTag(obj chkget.IChkGet) {
 	var (
 		tags   = obj.Tags()
-		tagNum = len(*tags)
+		tagNum = len(tags)
 	)
 	ezlog.Log().N(obj.FilePath())
 	if tagNum > 0 {
 		if global.Flag.Verbose {
 			ezlog.Lm(tags)
 		} else {
-			ezlog.M((*tags)[tagNum-1])
+			ezlog.M(tags[tagNum-1])
 		}
 	}
 	ezlog.Out()

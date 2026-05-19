@@ -26,7 +26,7 @@ type IChkGet interface {
 	Chk(tag string) IChkGet
 	Get() IChkGet
 	Err() error
-	FilePath() *string
+	FilePath() string
 	New(workPath string) IChkGet
-	Tags() *[]string
+	Tags() []string
 }

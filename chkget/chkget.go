@@ -38,8 +38,8 @@ func (t *ChkGet) New(workPath string) IChkGet {
 	return t
 }
 
-func (t *ChkGet) Chk(tag string) IChkGet       { return t }
-func (t *ChkGet) Get() IChkGet                 { return t }
-func (t *ChkGet) Err() error                   { return t.Base.Err }
-func (t *ChkGet) FilePath() (filePath *string) { return &t.filePath }
-func (t *ChkGet) Tags() (tags *[]string)       { return &t.tags }
+func (t *ChkGet) Chk(tag string) IChkGet      { return t }
+func (t *ChkGet) Get() IChkGet                { return t }
+func (t *ChkGet) Err() error                  { return t.Base.Err }
+func (t *ChkGet) FilePath() (filePath string) { return t.filePath }
+func (t *ChkGet) Tags() (tags []string)       { return t.tags }
