@@ -39,7 +39,11 @@
 - v1.1.6
   - GitTag.Get(): fix nil pointer
   - GitTag.Get(): minor syntax update
-  - IChkGet: don't return point
+  - IChkGet: don't return pointer
   - IChkGet: sort interface
   - VerFile: fix t.MyType
   - add git branch support
+- v1.1.7
+  - GitTag.Get(): detect mo tag
+  - add git branch support
+  - update go-helper/v2
