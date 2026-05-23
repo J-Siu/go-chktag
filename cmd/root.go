@@ -54,8 +54,8 @@ Use -t to specify tag version.`,
 			iChkGets    = []chkget.IChkGet{
 				new(chkget.GitBranch),
 				new(chkget.GitTag),
-				new(chkget.ChgLog),
 				new(chkget.VerFile),
+				new(chkget.ChgLog),
 			}
 		)
 		if argc == 0 {
@@ -66,12 +66,10 @@ Use -t to specify tag version.`,
 			chkPass = true
 			for _, obj := range iChkGets {
 				e = obj.New(path).Err()
-				// Print Tag
-				if e == nil {
-					outputTag(obj)
+				if e == nil { // Print Tag
+					outputGet(obj)
 				}
-				// Check Tag
-				if global.Flag.Tag != "" {
+				if global.Flag.Tag != "" { // Check Tag
 					if e == nil {
 						e = obj.Chk(global.Flag.Tag).Err()
 						chkPass = chkPass && e == nil
@@ -104,7 +102,7 @@ func init() {
 	cmd.PersistentFlags().StringVarP(&global.Flag.Tag, "tag", "t", "", "check specific tag")
 }
 
-func outputTag(obj chkget.IChkGet) {
+func outputGet(obj chkget.IChkGet) {
 	var (
 		tags   = obj.Tags()
 		tagNum = len(tags)
