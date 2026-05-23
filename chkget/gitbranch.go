@@ -60,8 +60,8 @@ func (t *GitBranch) Get() IChkGet {
 		branch = gitCmd.BranchCurrent().Run().Stdout.String()
 	)
 	if gitCmd.Err == nil {
-		t.tags = append(t.tags, branch)
-		ezlog.Debug().N(prefix).N("branch").Lm(t.tags[0]).Out()
+		t.tags = []string{branch}
+		ezlog.Debug().N(prefix).N("branch").Lm(branch).Out()
 	} else {
 		t.Base.Err = errors.New(t.WorkPath + ": " + strings.Trim(gitCmd.Stderr.String(), "\n"))
 	}
