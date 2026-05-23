@@ -75,7 +75,7 @@ func (t *ChgLog) Get() IChkGet {
 	)
 	t.filePath = file.FindFile(t.WorkPath, global.FileChangLog, false)
 	if t.filePath == "" {
-		t.Base.Err = errors.New(t.WorkPath + ": " + global.FileChangLog + " not found")
+		t.Base.Err = errors.New(t.WorkPath + ": no " + global.FileChangLog)
 	}
 	if t.Base.Err == nil {
 		ezlog.Debug().N(prefix).N("file").M(t.filePath).Out()
