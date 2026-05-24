@@ -23,12 +23,14 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"errors"
 	"os"
 
 	"github.com/J-Siu/go-chktag/chkget"
 	"github.com/J-Siu/go-chktag/global"
 	"github.com/J-Siu/go-helper/v2/errs"
 	"github.com/J-Siu/go-helper/v2/ezlog"
+	"github.com/J-Siu/go-helper/v2/file"
 	"github.com/spf13/cobra"
 )
 
@@ -63,6 +65,10 @@ Use -t to specify tag version.`,
 			currDirOnly = true
 		}
 		for _, path := range args {
+			if !file.IsDir(path) {
+				errs.Queue(path, errors.New("is not a directory"))
+				continue
+			}
 			chkPass = true
 			for _, obj := range iChkGets {
 				e = obj.New(path).Err()
