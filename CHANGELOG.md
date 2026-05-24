@@ -47,3 +47,6 @@
   - GitTag.Get(): detect mo tag
   - add git branch support
   - update go-helper/v2
+- v1.1.8
+  - fix check path in main loop
+  - fix git branch, git tag error message
