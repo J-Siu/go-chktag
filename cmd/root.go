@@ -25,6 +25,7 @@ package cmd
 import (
 	"errors"
 	"os"
+	"path"
 
 	"github.com/J-Siu/go-chktag/chkget"
 	"github.com/J-Siu/go-chktag/global"
@@ -64,14 +65,22 @@ Use -t to specify tag version.`,
 			args = []string{"."}
 			currDirOnly = true
 		}
-		for _, path := range args {
-			if !file.IsDir(path) {
-				errs.Queue(path, errors.New("is not a directory"))
+		for _, dir := range args {
+			if !file.IsDir(dir) {
+				errs.Queue(dir, errors.New("not a directory"))
+				continue
+			}
+			if !file.IsDir(path.Join(dir, ".git")) {
+				errs.Queue(dir, errors.New("not a git repository"))
+				continue
+			}
+			if !file.IsRegularFile(path.Join(dir, "go.mod")) {
+				errs.Queue(dir, errors.New("not a go project"))
 				continue
 			}
 			chkPass = true
 			for _, obj := range iChkGets {
-				e = obj.New(path).Err()
+				e = obj.New(dir).Err()
 				if e == nil { // Print Tag
 					outputGet(obj)
 				}
@@ -85,7 +94,7 @@ Use -t to specify tag version.`,
 				}
 				errs.Queue("", e)
 			}
-			outputChk(path, chkPass, currDirOnly)
+			outputChk(dir, chkPass, currDirOnly)
 		}
 		if errs.NotEmpty() {
 			ezlog.Err().L().M(errs.Errs()).Out()
